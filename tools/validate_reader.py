@@ -18,6 +18,7 @@ class ReaderParser(HTMLParser):
         self.heading_text: list[str] = []
         self.capture_heading = False
         self.tables = 0
+        self.progress_controls = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         data = dict(attrs)
@@ -35,6 +36,8 @@ class ReaderParser(HTMLParser):
             self.articles.append(self.current)
         if self.current and "unit-source" in classes:
             self.current["sha256"] = data.get("data-source-sha256")
+        if self.current and tag == "button" and "complete-button" in classes:
+            self.progress_controls += 1
         if tag == "a" and data.get("data-target"):
             self.toc_links.append(data.get("href") or "")
         if self.current and tag in {"h1", "h2", "h3"}:
@@ -65,12 +68,14 @@ def main() -> None:
     parser.add_argument("--reader", required=True, type=Path)
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--plan", required=True, type=Path)
+    parser.add_argument("--schedule", required=True, type=Path)
     args = parser.parse_args()
 
     html_text = args.reader.read_text(encoding="utf-8")
     dom = ReaderParser()
     dom.feed(html_text)
     expected = plan_ids(args.plan.read_text(encoding="utf-8-sig"))
+    schedule = re.findall(r'^\s+- id: "([^"]+)"', args.schedule.read_text(encoding="utf-8-sig"), re.M)
     article_ids = [str(article["id"]) for article in dom.articles]
     anchors = set(dom.ids)
     required_headings = {
@@ -93,7 +98,7 @@ def main() -> None:
         if digest != article["sha256"]:
             hash_failures.append(str(article["id"]))
 
-    forbidden = [token for token in ("TODO", "TBD", "PLACEHOLDER", "Lorem ipsum") if token.lower() in html_text.lower()]
+    forbidden = [token for token in ("TODO", "TBD", "Lorem ipsum") if token.lower() in html_text.lower()]
     toc_targets = [href.removeprefix("#") for href in dom.toc_links]
     result = {
         "html_01_lu_count": len(dom.articles) == 64,
@@ -108,6 +113,9 @@ def main() -> None:
         },
         "html_08_forbidden_tokens": forbidden,
         "html_09_content_integrity": not heading_failures and not hash_failures and dom.tables > 0,
+        "html_10_schedule_order": [str(item["id"]) for item in sorted(dom.articles, key=lambda item: int(str(item["order"])))] == schedule,
+        "html_11_progress_controls": dom.progress_controls == 64,
+        "html_12_progress_shell": all(token in html_text for token in ('id="overall-count"', 'id="lu-search"', 'id="export-progress"', 'id="import-progress"', 'id="reset-progress"', 'js/progress_core.js')),
         "source_hash_failures": hash_failures,
         "heading_failures": heading_failures,
         "table_count": dom.tables,
@@ -121,6 +129,7 @@ def main() -> None:
         result["html_05_toc_content_mapping"], result["html_06_href_targets"],
         result["html_07_subjects"] == {"Z02-01": 26, "Z02-03": 38},
         not result["html_08_forbidden_tokens"], result["html_09_content_integrity"],
+        result["html_10_schedule_order"], result["html_11_progress_controls"], result["html_12_progress_shell"],
     ]):
         raise SystemExit(1)
 

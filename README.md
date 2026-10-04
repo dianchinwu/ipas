@@ -1,5 +1,13 @@
 # IPAS HTML Learning Reader
 
+## Learning Reader v2
+
+Reader v2 在原有 64-LU 離線閱讀器上加入第一輪學習進度：整體與分科進度、目前／下一個 LU、今日完成清單、正文完成按鈕、目錄狀態同步、全文快速搜尋，以及全部／未完成／已完成篩選。
+
+學習紀錄目前儲存在瀏覽器 LocalStorage，不會自動跨裝置同步。LocalStorage key 為 `ipas-learning-progress-v1`；可用側欄的「匯出」備份 JSON、「匯入」驗證並合併備份，或經兩次確認後「重設」。完成日期依使用者裝置的 local date 記錄，顯示為 `YYYY/MM/DD`。
+
+目前閱讀位置與完成狀態分離；捲動與導覽只會更新閱讀位置，不會自動完成 LU。完整資料規格見 `LEARNING_PROGRESS_SPEC.md`。重新產生與驗證時須分別提供 `--schedule ../03_learning_units/learning_schedule.yaml`。
+
 ## 用途
 
 這是一個 Phase 4C 教材閱讀層，將 64 份正式 Learning Unit 完整呈現在單一 HTML 頁面。它不會修改或摘要來源內容，也不包含題庫、測驗、錯題紀錄、適性複習或其他 Phase 5 功能。

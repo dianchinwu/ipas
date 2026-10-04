@@ -163,6 +163,13 @@ def plan_rows(plan_text: str) -> list[dict[str, str]]:
     return sorted(rows, key=lambda row: int(row["order"]))
 
 
+def schedule_ids(schedule_text: str) -> list[str]:
+    ids = re.findall(r'^\s+- id: "([^"]+)"', schedule_text, re.M)
+    if len(ids) != 64 or len(set(ids)) != 64:
+        raise SystemExit(f"Expected 64 unique schedule IDs, found {len(ids)}")
+    return ids
+
+
 def metadata(markdown: str, label: str) -> str:
     match = re.search(rf"\|\s*{re.escape(label)}\s*\|\s*(.*?)\s*\|", markdown)
     return re.sub(r"`", "", match.group(1)).strip() if match else ""
@@ -172,6 +179,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--plan", required=True, type=Path)
+    parser.add_argument("--schedule", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
 
@@ -179,8 +187,13 @@ def main() -> None:
     if len(rows) != 64 or any(row["status"] != "VALIDATED" for row in rows):
         raise SystemExit("Expected 64 validated production rows")
 
+    by_id = {row["id"]: row for row in rows}
+    order = schedule_ids(args.schedule.read_text(encoding="utf-8-sig"))
+    if set(order) != set(by_id):
+        raise SystemExit("Learning schedule and production plan IDs do not match")
     units = []
-    for row in rows:
+    for learning_order, unit_id in enumerate(order, 1):
+        row = {**by_id[unit_id], "order": str(learning_order)}
         path = args.source / f'{row["id"]}.md'
         if not path.exists():
             raise SystemExit(f"Missing source: {path}")
@@ -203,7 +216,7 @@ def main() -> None:
     for subject in ("Z02-01", "Z02-03"):
         subject_units = [unit for unit in units if unit["subject"] == subject]
         toc_items = "\n".join(
-            f'<li><a href="#{unit["id"]}" data-target="{unit["id"]}"><span>LU {int(unit["order"]):02d}</span>{html.escape(unit["title"])}</a></li>'
+            f'<li><a href="#{unit["id"]}" data-target="{unit["id"]}"><span class="toc-label"><b class="toc-state">○</b> LU {int(unit["order"]):02d}<small class="toc-date"></small></span><span>{html.escape(unit["title"])}</span></a></li>'
             for unit in subject_units
         )
         toc_groups.append(
@@ -217,8 +230,9 @@ def main() -> None:
             if unit["resolution"] == "UNCERTAIN":
                 flags.append('<span class="status status-uncertain">UNCERTAIN</span>')
             articles.append(
-                f'<article class="learning-unit" id="{unit["id"]}" data-subject="{subject}" data-order="{unit["order"]}">'
+                f'<article class="learning-unit" id="{unit["id"]}" data-subject="{subject}" data-order="{unit["order"]}" data-title="{html.escape(unit["title"], quote=True)}" data-topic="{html.escape(unit["topic"], quote=True)}">'
                 f'<div class="unit-kicker"><span>LU {int(unit["order"]):02d}</span><span>{subject}</span><span>{html.escape(unit["topic"])}</span>{"".join(flags)}</div>'
+                f'<div class="unit-progress"><div><strong class="unit-progress-state">○ 尚未完成</strong><time class="unit-progress-date"></time></div><button class="complete-button" data-id="{unit["id"]}" type="button">✓ 完成今日學習</button><button class="cancel-button secondary-button" data-id="{unit["id"]}" type="button" hidden>取消完成</button></div>'
                 f'<div class="unit-source" data-source-sha256="{unit["sha256"]}">{unit["html"]}</div>'
                 '</article>'
             )
@@ -240,18 +254,28 @@ def main() -> None:
   <header class="app-header" id="page-top">
     <button class="menu-button" id="menu-button" type="button" aria-controls="toc-panel" aria-expanded="false"><span aria-hidden="true">☰</span><span>LU 目錄</span></button>
     <div class="brand"><strong>IPAS AI 應用規劃師－中級</strong><span>Learning Reader</span></div>
+    <div class="mobile-status"><span>進度 <b id="mobile-progress">0 / 64</b></span><span>目前 <b id="mobile-current">LU 01</b></span></div>
     <div class="coverage" aria-label="教材涵蓋範圍"><span>64 LU</span><span>Z02-01 · {counts['Z02-01']}</span><span>Z02-03 · {counts['Z02-03']}</span></div>
   </header>
   <div class="reader-shell">
     <div class="toc-backdrop" id="toc-backdrop" hidden></div>
     <aside class="toc-panel" id="toc-panel" aria-label="Learning Unit 目錄">
-      <div class="toc-heading"><div><strong>完整目錄</strong><span>依 Production Order 排列</span></div><button class="toc-close" id="toc-close" type="button" aria-label="關閉目錄">×</button></div>
+      <div class="toc-heading"><div><strong>學習控制</strong><span id="reading-position">閱讀位置：LU 01</span></div><button class="toc-close" id="toc-close" type="button" aria-label="關閉目錄">×</button></div>
+      <section class="side-tools" aria-label="搜尋與進度工具">
+        <label for="lu-search">搜尋 Learning Unit</label><input id="lu-search" type="search" placeholder="搜尋 LU、主題、關鍵字..." autocomplete="off">
+        <div class="filter-control" aria-label="進度篩選"><button class="is-selected" data-filter="all" type="button">全部</button><button data-filter="incomplete" type="button">未完成</button><button data-filter="completed" type="button">已完成</button></div>
+        <div id="search-results" class="search-results" hidden></div>
+        <button class="continue-button" data-continue type="button">繼續學習</button>
+        <div class="data-actions"><button id="export-progress" type="button">匯出</button><button id="import-progress" type="button">匯入</button><button id="reset-progress" type="button">重設</button></div>
+        <input id="import-file" type="file" accept="application/json,.json" hidden><p id="progress-live" class="progress-live" role="status" aria-live="polite"></p>
+      </section>
       <nav>{''.join(toc_groups)}</nav>
     </aside>
-    <main id="reader-content">{''.join(content_groups)}</main>
+    <main id="reader-content"><section class="learning-overview" aria-labelledby="progress-heading"><header><p>第一輪學習</p><h1 id="progress-heading">學習進度</h1></header><div class="overview-grid"><section><div class="metric-line"><strong id="overall-count">0 / 64 LU</strong><span id="overall-percent">0%</span></div><div class="progress-track"><span id="overall-bar"></span></div><div class="subject-progress"><div><span>Z02-01</span><b id="count-Z02-01">0 / 26</b><div class="progress-track"><span id="bar-Z02-01"></span></div></div><div><span>Z02-03</span><b id="count-Z02-03">0 / 38</b><div class="progress-track"><span id="bar-Z02-03"></span></div></div></div></section><section class="current-block"><p>目前學習位置</p><strong id="current-id">{units[0]['id']}</strong><span id="current-title">{html.escape(units[0]['title'])}</span><button class="continue-button" data-continue type="button">開始學習</button></section><section class="today-block"><p>今日已完成 · <time id="today-date"></time></p><strong id="today-count">今日完成 0 個 LU</strong><ul id="today-list"></ul></section></div></section>{''.join(content_groups)}</main>
   </div>
   <footer><p>Canonical source: <code>04_content/</code> · 64 / 64 VALIDATED · Phase 4C PASS_WITH_REVIEW</p></footer>
   <button class="back-to-top" id="back-to-top" type="button" aria-label="回到頁面最上方" title="回到最上方">↑</button>
+  <script src="js/progress_core.js"></script>
   <script src="js/learning_reader.js"></script>
 </body>
 </html>'''

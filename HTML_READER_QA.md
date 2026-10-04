@@ -1,5 +1,13 @@
 # HTML Reader QA
 
+## Reader v2 Update — 2026-10-04
+
+- Existing reader regression: PASS (64 LU, 64 anchors, 64 TOC mappings, 167 tables, 64 source hashes).
+- Canonical learning order: PASS against `03_learning_units/learning_schedule.yaml`.
+- Progress contract: PROGRESS-01 through PROGRESS-14 PASS; see `PROGRESS_QA.md`.
+- JavaScript browser execution and responsive screenshots: REVIEW_REQUIRED because no browser runtime was available in the execution environment.
+- v2 gate: PASS_WITH_REVIEW.
+
 ## Source
 
 - Canonical source: `04_content/`
