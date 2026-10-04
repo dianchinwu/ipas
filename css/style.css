@@ -55,12 +55,19 @@ a { color: var(--accent); text-underline-offset: 0.2em; }
 .toc-heading div { display: grid; }
 .toc-heading span { color: var(--secondary); font-size: 0.75rem; }
 .toc-close { display: none; }
+.guide-link { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 7px; align-items: center; margin-bottom: 12px; padding: 9px 8px; border-left: 2px solid var(--accent); background: var(--highlight); color: var(--text); text-decoration: none; }
+.guide-link > span:first-child { color: var(--accent); font-size: 1rem; }
+.guide-link > span:last-child { display: grid; }
+.guide-link small { color: var(--secondary); font-size: 0.66rem; line-height: 1.4; }
+.side-progress { padding: 10px 8px 12px; margin-bottom: 12px; border-bottom: 1px solid var(--divider); font-size: 0.72rem; }
+.side-progress > div { display: flex; justify-content: space-between; gap: 8px; }
+.side-progress .progress-track { display: block; margin: 5px 0 10px; }
 .toc-group { margin-bottom: 26px; }
 .toc-group h2 { margin: 0; font-size: 0.88rem; color: var(--accent); }
 .toc-group p { margin: 2px 0 10px; color: var(--secondary); font-size: 0.72rem; }
 .toc-group ol { margin: 0; padding: 0; list-style: none; }
 .toc-group li { margin: 0; }
-.toc-group a { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 7px; padding: 7px 8px; border-left: 2px solid transparent; color: var(--secondary); text-decoration: none; font-size: 0.78rem; line-height: 1.4; }
+.toc-group a { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 7px; padding: 7px 8px; border-left: 2px solid transparent; color: var(--secondary); text-decoration: none; font-size: 0.78rem; line-height: 1.4; }
 .toc-group a span { color: #73808d; font-variant-numeric: tabular-nums; }
 .toc-label { display: grid; grid-template-columns: 14px 1fr; white-space: nowrap; }
 .toc-label b { color: #23633c; }
@@ -69,6 +76,18 @@ a { color: var(--accent); text-underline-offset: 0.2em; }
 .toc-group a.is-active { border-left-color: var(--accent); background: var(--highlight); color: var(--text); font-weight: 650; }
 
 main { min-width: 0; padding: 0 48px 80px; }
+.learning-guide { max-width: 940px; margin: 0 auto; padding: 42px 0 38px; border-bottom: 1px solid var(--divider); scroll-margin-top: calc(var(--header-height) + 18px); }
+.learning-guide header { max-width: 760px; }
+.learning-guide header > p:first-child { margin: 0; color: var(--accent); font-size: 0.78rem; font-weight: 700; }
+.learning-guide header h1 { margin: 2px 0 8px; font-size: 1.65rem; line-height: 1.3; }
+.learning-guide header p:last-child { margin: 0; color: var(--secondary); }
+.guide-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin-top: 20px; }
+.guide-content section { padding: 16px 0; border-top: 1px solid var(--divider); }
+.guide-content h2 { margin: 0 0 6px; font-size: 1rem; }
+.guide-content p { margin: 0; font-size: 0.88rem; line-height: 1.7; }
+.guide-goal { grid-column: 1 / -1; padding: 16px 18px !important; border-left: 3px solid var(--accent); background: var(--highlight); }
+.guide-goal p:first-of-type { font-weight: 700; }
+.current-block > b { color: var(--accent); font-size: 0.9rem; }
 .learning-overview { max-width: 940px; margin: 0 auto; padding: 38px 0 34px; border-bottom: 2px solid var(--text); }
 .learning-overview header p, .learning-overview header h1 { margin: 0; }
 .learning-overview header p { color: var(--secondary); font-size: 0.78rem; }
@@ -153,6 +172,7 @@ footer { padding: 20px 28px; border-top: 1px solid var(--divider); background: v
   body.menu-open { overflow: hidden; }
   main { padding: 0 22px 72px; }
   .learning-overview { padding: 24px 0; }
+  .learning-guide { padding: 28px 0; }
   .overview-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
   .overview-grid > section + section { padding-left: 18px; }
   .today-block { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid var(--divider); padding: 14px 0 0 !important; }
@@ -170,6 +190,10 @@ footer { padding: 20px 28px; border-top: 1px solid var(--divider); background: v
   .menu-button span:last-child { display: none; }
   .mobile-status { gap: 7px; }
   .overview-grid { display: block; }
+  .guide-content { display: block; }
+  .learning-guide header h1 { font-size: 1.4rem; }
+  .guide-content h2 { font-size: 0.96rem; }
+  .guide-content p { font-size: 0.84rem; }
   .overview-grid > section + section { margin-top: 18px; padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--divider); }
   .unit-kicker { gap: 6px 8px; }
   .unit-kicker span + span { padding-left: 8px; }

@@ -8,6 +8,12 @@ Reader v2 在原有 64-LU 離線閱讀器上加入第一輪學習進度：整體
 
 目前閱讀位置與完成狀態分離；捲動與導覽只會更新閱讀位置，不會自動完成 LU。完整資料規格見 `LEARNING_PROGRESS_SPEC.md`。重新產生與驗證時須分別提供 `--schedule ../03_learning_units/learning_schedule.yaml`。
 
+### Learning Guide 與 Order
+
+左側最上方的「學習說明」會跳到頁面內的使用指南，說明第一輪目標、LU 閱讀順序、Active Recall、完成規則、官方 PDF 核對時機與進度定義。
+
+側欄每個 LU 的 `Order 1` 至 `Order 64` 是第一輪建議學習順序，不是考試題號、重要度、難度、Scope Code 或 LU ID。唯一 Source of Truth 是 `03_learning_units/learning_schedule.yaml`，generator 依其中 `learning_units[].id` 的出現順序產生 `data-order` 與目錄標籤，並與 64 個正式 LU 核對。`○` 表示尚未完成，`✓` 表示已完成；完成日期、搜尋、篩選與 Continue Learning 仍使用相同的 Order 與 LocalStorage 狀態。
+
 ## 用途
 
 這是一個 Phase 4C 教材閱讀層，將 64 份正式 Learning Unit 完整呈現在單一 HTML 頁面。它不會修改或摘要來源內容，也不包含題庫、測驗、錯題紀錄、適性複習或其他 Phase 5 功能。

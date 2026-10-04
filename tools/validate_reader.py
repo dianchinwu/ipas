@@ -100,6 +100,7 @@ def main() -> None:
 
     forbidden = [token for token in ("TODO", "TBD", "Lorem ipsum") if token.lower() in html_text.lower()]
     toc_targets = [href.removeprefix("#") for href in dom.toc_links]
+    toc_orders = [(item, int(order)) for item, order in re.findall(r'<a href="#([^"]+)" data-target="[^"]+"><span class="toc-label"><b[^>]*>.*?</b><span>Order (\d+)</span>', html_text)]
     result = {
         "html_01_lu_count": len(dom.articles) == 64,
         "html_02_all_ids_present": set(article_ids) == set(expected),
@@ -116,6 +117,8 @@ def main() -> None:
         "html_10_schedule_order": [str(item["id"]) for item in sorted(dom.articles, key=lambda item: int(str(item["order"])))] == schedule,
         "html_11_progress_controls": dom.progress_controls == 64,
         "html_12_progress_shell": all(token in html_text for token in ('id="overall-count"', 'id="lu-search"', 'id="export-progress"', 'id="import-progress"', 'id="reset-progress"', 'js/progress_core.js')),
+        "html_13_learning_guide": all(token in html_text for token in ('id="learning-guide"', 'data-guide-link', '如何使用 Learning Reader', 'Order 是第一輪學習的建議順序位置')),
+        "html_14_toc_orders": len(toc_orders) == 64 and {order for _, order in toc_orders} == set(range(1, 65)) and all(schedule[order - 1] == item for item, order in toc_orders),
         "source_hash_failures": hash_failures,
         "heading_failures": heading_failures,
         "table_count": dom.tables,
@@ -130,6 +133,7 @@ def main() -> None:
         result["html_07_subjects"] == {"Z02-01": 26, "Z02-03": 38},
         not result["html_08_forbidden_tokens"], result["html_09_content_integrity"],
         result["html_10_schedule_order"], result["html_11_progress_controls"], result["html_12_progress_shell"],
+        result["html_13_learning_guide"], result["html_14_toc_orders"],
     ]):
         raise SystemExit(1)
 

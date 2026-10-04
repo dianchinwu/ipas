@@ -1,5 +1,14 @@
 # HTML Reader QA
 
+## Reader v2.1 Learning Guide and Order — 2026-10-04
+
+- Learning Guide anchor and sidebar entry: PASS (static DOM).
+- Sidebar Order 1–64 uniqueness and completeness: PASS.
+- Each Order-to-LU mapping against `learning_schedule.yaml`: PASS.
+- Order 1: `LU-SCOPE-Z02-03-L232-03-04`.
+- Order 64: `LU-SCOPE-Z02-03-L234-02-02`.
+- Browser interaction and screenshot QA: NOT AVAILABLE.
+
 ## Reader v2 Update — 2026-10-04
 
 - Existing reader regression: PASS (64 LU, 64 anchors, 64 TOC mappings, 167 tables, 64 source hashes).
