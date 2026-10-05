@@ -1,18 +1,27 @@
 # HTML Reader QA
 
+## Reader v2.2 Canonical Order Repair — 2026-10-05
+
+- Authority: `03_learning_units/learning_unit_map.yaml` array order.
+- Order 1: `LU-SCOPE-Z02-01-L211-01-01`.
+- Order 64: `LU-SCOPE-Z02-03-L234-02-03`.
+- ORDER-01 through ORDER-15: PASS.
+- Existing PROGRESS-01 through PROGRESS-14: PASS.
+- Reader integrity and source hashes: PASS.
+- Browser interaction: NOT AVAILABLE.
+- Gate: `ORDER_REPAIR_GATE = PASS`.
+
 ## Reader v2.1 Learning Guide and Order — 2026-10-04
 
 - Learning Guide anchor and sidebar entry: PASS (static DOM).
 - Sidebar Order 1–64 uniqueness and completeness: PASS.
-- Each Order-to-LU mapping against `learning_schedule.yaml`: PASS.
-- Order 1: `LU-SCOPE-Z02-03-L232-03-04`.
-- Order 64: `LU-SCOPE-Z02-03-L234-02-02`.
+- This v2.1 schedule-based Order result was superseded by the v2.2 canonical-order repair below.
 - Browser interaction and screenshot QA: NOT AVAILABLE.
 
 ## Reader v2 Update — 2026-10-04
 
 - Existing reader regression: PASS (64 LU, 64 anchors, 64 TOC mappings, 167 tables, 64 source hashes).
-- Canonical learning order: PASS against `03_learning_units/learning_schedule.yaml`.
+- The former schedule-order check was superseded by map-based canonical validation.
 - Progress contract: PROGRESS-01 through PROGRESS-14 PASS; see `PROGRESS_QA.md`.
 - JavaScript browser execution and responsive screenshots: REVIEW_REQUIRED because no browser runtime was available in the execution environment.
 - v2 gate: PASS_WITH_REVIEW.

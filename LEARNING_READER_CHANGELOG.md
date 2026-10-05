@@ -1,5 +1,22 @@
 # Learning Reader Changelog
 
+## Version 2.2 — 2026-10-05
+
+### Changes
+
+- Repaired the incorrect use of Learning Schedule sequence as Reader Order.
+- Changed Canonical Order authority to `03_learning_units/learning_unit_map.yaml` and its original `learning_units` array order.
+- Preserved schedule and production order as independent concepts.
+- Updated Continue Learning, current position, TOC labels, article metadata, and progress display through regenerated canonical `data-order` values.
+- Kept LocalStorage progress identity keyed by unchanged LU IDs; no progress migration is required.
+- Added `CANONICAL_LU_ORDER.md`, `ORDER_REPAIR_REPORT.md`, and ORDER-01 through ORDER-15 validation.
+
+### QA Result
+
+- Canonical Order 1–64: PASS
+- Existing Reader and progress regression: PASS
+- Browser interaction: NOT AVAILABLE
+
 ## Version 2.1 — 2026-10-04
 
 ### Changes

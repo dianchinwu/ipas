@@ -68,14 +68,15 @@ def main() -> None:
     parser.add_argument("--reader", required=True, type=Path)
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--plan", required=True, type=Path)
-    parser.add_argument("--schedule", required=True, type=Path)
+    parser.add_argument("--map", required=True, type=Path)
     args = parser.parse_args()
 
     html_text = args.reader.read_text(encoding="utf-8")
     dom = ReaderParser()
     dom.feed(html_text)
     expected = plan_ids(args.plan.read_text(encoding="utf-8-sig"))
-    schedule = re.findall(r'^\s+- id: "([^"]+)"', args.schedule.read_text(encoding="utf-8-sig"), re.M)
+    mapped = json.loads(args.map.read_text(encoding="utf-8-sig"))
+    canonical = [unit["id"] for unit in mapped.get("learning_units", [])]
     article_ids = [str(article["id"]) for article in dom.articles]
     anchors = set(dom.ids)
     required_headings = {
@@ -114,11 +115,12 @@ def main() -> None:
         },
         "html_08_forbidden_tokens": forbidden,
         "html_09_content_integrity": not heading_failures and not hash_failures and dom.tables > 0,
-        "html_10_schedule_order": [str(item["id"]) for item in sorted(dom.articles, key=lambda item: int(str(item["order"])))] == schedule,
+        "html_10_canonical_order": len(canonical) == len(set(canonical)) == 64 and [str(item["id"]) for item in sorted(dom.articles, key=lambda item: int(str(item["order"])))] == canonical,
         "html_11_progress_controls": dom.progress_controls == 64,
         "html_12_progress_shell": all(token in html_text for token in ('id="overall-count"', 'id="lu-search"', 'id="export-progress"', 'id="import-progress"', 'id="reset-progress"', 'js/progress_core.js')),
-        "html_13_learning_guide": all(token in html_text for token in ('id="learning-guide"', 'data-guide-link', '如何使用 Learning Reader', 'Order 是第一輪學習的建議順序位置')),
-        "html_14_toc_orders": len(toc_orders) == 64 and {order for _, order in toc_orders} == set(range(1, 65)) and all(schedule[order - 1] == item for item, order in toc_orders),
+        "html_13_learning_guide": all(token in html_text for token in ('id="learning-guide"', 'data-guide-link', '如何使用 Learning Reader', 'Order 是 Learning Unit 的固定學習單元識別順序')),
+        "html_14_toc_orders": len(toc_orders) == 64 and {order for _, order in toc_orders} == set(range(1, 65)) and all(canonical[order - 1] == item for item, order in toc_orders),
+        "order_01_expected": canonical[:3] == ["LU-SCOPE-Z02-01-L211-01-01", "LU-SCOPE-Z02-01-L211-01-02", "LU-SCOPE-Z02-01-L211-01-03"],
         "source_hash_failures": hash_failures,
         "heading_failures": heading_failures,
         "table_count": dom.tables,
@@ -132,8 +134,9 @@ def main() -> None:
         result["html_05_toc_content_mapping"], result["html_06_href_targets"],
         result["html_07_subjects"] == {"Z02-01": 26, "Z02-03": 38},
         not result["html_08_forbidden_tokens"], result["html_09_content_integrity"],
-        result["html_10_schedule_order"], result["html_11_progress_controls"], result["html_12_progress_shell"],
+        result["html_10_canonical_order"], result["html_11_progress_controls"], result["html_12_progress_shell"],
         result["html_13_learning_guide"], result["html_14_toc_orders"],
+        result["order_01_expected"],
     ]):
         raise SystemExit(1)
 

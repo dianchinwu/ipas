@@ -6,13 +6,13 @@ Reader v2 在原有 64-LU 離線閱讀器上加入第一輪學習進度：整體
 
 學習紀錄目前儲存在瀏覽器 LocalStorage，不會自動跨裝置同步。LocalStorage key 為 `ipas-learning-progress-v1`；可用側欄的「匯出」備份 JSON、「匯入」驗證並合併備份，或經兩次確認後「重設」。完成日期依使用者裝置的 local date 記錄，顯示為 `YYYY/MM/DD`。
 
-目前閱讀位置與完成狀態分離；捲動與導覽只會更新閱讀位置，不會自動完成 LU。完整資料規格見 `LEARNING_PROGRESS_SPEC.md`。重新產生與驗證時須分別提供 `--schedule ../03_learning_units/learning_schedule.yaml`。
+目前閱讀位置與完成狀態分離；捲動與導覽只會更新閱讀位置，不會自動完成 LU。完整資料規格見 `LEARNING_PROGRESS_SPEC.md`。重新產生與驗證時須提供 `--map ../03_learning_units/learning_unit_map.yaml`；可另以 `--manifest CANONICAL_LU_ORDER.md` 重建 Order 文件。
 
 ### Learning Guide 與 Order
 
 左側最上方的「學習說明」會跳到頁面內的使用指南，說明第一輪目標、LU 閱讀順序、Active Recall、完成規則、官方 PDF 核對時機與進度定義。
 
-側欄每個 LU 的 `Order 1` 至 `Order 64` 是第一輪建議學習順序，不是考試題號、重要度、難度、Scope Code 或 LU ID。唯一 Source of Truth 是 `03_learning_units/learning_schedule.yaml`，generator 依其中 `learning_units[].id` 的出現順序產生 `data-order` 與目錄標籤，並與 64 個正式 LU 核對。`○` 表示尚未完成，`✓` 表示已完成；完成日期、搜尋、篩選與 Continue Learning 仍使用相同的 Order 與 LocalStorage 狀態。
+側欄每個 LU 的 `Order 1` 至 `Order 64` 是固定的 Learning Unit 識別順序，不是學習排程日期、Production Order、考試題號、重要度、難度、Scope Code 或 LU ID。唯一 Source of Truth 是 `03_learning_units/learning_unit_map.yaml`，generator 依 `learning_units` 陣列原始順序產生 `data-order` 與目錄標籤。`○` 表示尚未完成，`✓` 表示已完成；完成日期、搜尋、篩選與 Continue Learning 保持以 LU ID 儲存狀態，並依 Canonical Order 導覽。
 
 ## 用途
 
@@ -39,7 +39,7 @@ Reader v2 在原有 64-LU 離線閱讀器上加入第一輪學習進度：整體
 
 `tools/generate_reader.py` 使用 Python 標準函式庫：
 
-1. 從 Production Plan 取得 64 個 VALIDATED LU 與順序。
+1. 從 Production Plan 驗證 64 個 VALIDATED LU，並從 Learning Unit Map 的原始陣列取得 Canonical Order。
 2. 驗證來源檔存在，且 Markdown 內的 Learning Unit ID 一致。
 3. 將 heading、paragraph、list、table、blockquote、code 與公式內容轉成語義化 HTML。
 4. 嵌入來源 SHA-256，產生單一 `index.html`。
@@ -50,6 +50,8 @@ Reader v2 在原有 64-LU 離線閱讀器上加入第一輪學習進度：整體
 python .\08_learning_reader\tools\generate_reader.py `
   --source .\04_content `
   --plan .\04_content\content_production_plan.yaml `
+  --map .\03_learning_units\learning_unit_map.yaml `
+  --manifest .\08_learning_reader\CANONICAL_LU_ORDER.md `
   --output .\08_learning_reader\index.html
 ```
 
@@ -59,7 +61,8 @@ python .\08_learning_reader\tools\generate_reader.py `
 python .\08_learning_reader\tools\validate_reader.py `
   --reader .\08_learning_reader\index.html `
   --source .\04_content `
-  --plan .\04_content\content_production_plan.yaml
+  --plan .\04_content\content_production_plan.yaml `
+  --map .\03_learning_units\learning_unit_map.yaml
 ```
 
 ## QA 結果

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import html
+import json
 import re
 from pathlib import Path
 
@@ -163,11 +164,28 @@ def plan_rows(plan_text: str) -> list[dict[str, str]]:
     return sorted(rows, key=lambda row: int(row["order"]))
 
 
-def schedule_ids(schedule_text: str) -> list[str]:
-    ids = re.findall(r'^\s+- id: "([^"]+)"', schedule_text, re.M)
-    if len(ids) != 64 or len(set(ids)) != 64:
-        raise SystemExit(f"Expected 64 unique schedule IDs, found {len(ids)}")
-    return ids
+def canonical_units(map_text: str) -> list[dict[str, str]]:
+    data = json.loads(map_text)
+    units = data.get("learning_units", [])
+    ids = [unit.get("id", "") for unit in units]
+    if len(ids) != 64 or len(set(ids)) != 64 or any(not item for item in ids):
+        raise SystemExit(f"Expected 64 unique canonical map IDs, found {len(ids)}")
+    return units
+
+
+def order_manifest(units: list[dict[str, str]]) -> str:
+    rows = [
+        "# Canonical Learning Unit Order", "",
+        "本文件定義 Reader 的 Order 1～64。", "", "## Definition", "",
+        "Order 是 Learning Unit 的固定學習單元識別順序。", "",
+        "Order 不等於 Production Order、Learning Schedule、Scheduled Learning Date、官方考試題號或重要程度排名。", "",
+        "## Source of Truth", "", "Canonical Order 的唯一來源是 `03_learning_units/learning_unit_map.yaml` 中 `learning_units` 陣列的原始順序。本文件僅供查閱，不取代該來源。", "",
+        "## Mapping", "", "| Order | Learning Unit ID | Subject | Title |", "|---:|---|---|---|",
+    ]
+    for order, unit in enumerate(units, 1):
+        title = str(unit.get("title", "")).replace("|", "\\|")
+        rows.append(f'| {order} | `{unit["id"]}` | {unit.get("subject", "")} | {title} |')
+    return "\n".join(rows) + "\n"
 
 
 def metadata(markdown: str, label: str) -> str:
@@ -179,7 +197,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--plan", required=True, type=Path)
-    parser.add_argument("--schedule", required=True, type=Path)
+    parser.add_argument("--map", required=True, type=Path)
+    parser.add_argument("--manifest", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
 
@@ -188,9 +207,10 @@ def main() -> None:
         raise SystemExit("Expected 64 validated production rows")
 
     by_id = {row["id"]: row for row in rows}
-    order = schedule_ids(args.schedule.read_text(encoding="utf-8-sig"))
+    mapped_units = canonical_units(args.map.read_text(encoding="utf-8-sig"))
+    order = [unit["id"] for unit in mapped_units]
     if set(order) != set(by_id):
-        raise SystemExit("Learning schedule and production plan IDs do not match")
+        raise SystemExit("Canonical learning-unit map and production plan IDs do not match")
     units = []
     for learning_order, unit_id in enumerate(order, 1):
         row = {**by_id[unit_id], "order": str(learning_order)}
@@ -281,8 +301,18 @@ def main() -> None:
   <script src="js/learning_reader.js"></script>
 </body>
 </html>'''
+    template = template.replace(
+        "Order 是第一輪學習的建議順序位置。</strong>建議依",
+        "Order 是 Learning Unit 的固定學習單元識別順序。</strong>Reader 與 Continue Learning 依",
+    ).replace(
+        "它不是官方考試題號、重要程度、難度排名、Scope Code 或 Learning Unit ID。",
+        "它不是學習排程日期、製作順序、官方考試題號、重要程度、難度排名、Scope Code 或 Learning Unit ID。",
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(template, encoding="utf-8", newline="\n")
+    if args.manifest:
+        args.manifest.parent.mkdir(parents=True, exist_ok=True)
+        args.manifest.write_text(order_manifest(mapped_units), encoding="utf-8", newline="\n")
     print(f"Generated {args.output} with {len(units)} LUs: {counts}")
 
 
