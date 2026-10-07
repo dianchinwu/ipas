@@ -120,6 +120,7 @@ main { min-width: 0; padding: 0 48px 80px; }
 .unit-progress-date { min-height: 1.2em; color: var(--secondary); font-size: 0.72rem; }
 .unit-progress button { min-height: 38px; padding: 0 12px; border: 1px solid #23633c; background: #edf7f0; color: #1f5c37; font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 .unit-progress .secondary-button { border-color: var(--divider); background: white; color: var(--secondary); }
+.unit-completion-actions { justify-content: flex-end; margin: 30px 0 0; padding-top: 18px; border-top: 1px solid var(--divider); }
 .status { border: 1px solid currentColor !important; padding: 1px 6px 2px 6px !important; }
 .status-review { color: var(--important); }
 .status-uncertain { color: #6c4b00; }

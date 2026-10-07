@@ -252,8 +252,9 @@ def main() -> None:
             articles.append(
                 f'<article class="learning-unit" id="{unit["id"]}" data-subject="{subject}" data-order="{unit["order"]}" data-title="{html.escape(unit["title"], quote=True)}" data-topic="{html.escape(unit["topic"], quote=True)}">'
                 f'<div class="unit-kicker"><span>LU {int(unit["order"]):02d}</span><span>{subject}</span><span>{html.escape(unit["topic"])}</span>{"".join(flags)}</div>'
-                f'<div class="unit-progress"><div><strong class="unit-progress-state">○ 尚未完成</strong><time class="unit-progress-date"></time></div><button class="complete-button" data-id="{unit["id"]}" type="button">✓ 完成今日學習</button><button class="cancel-button secondary-button" data-id="{unit["id"]}" type="button" hidden>取消完成</button></div>'
+                f'<div class="unit-progress"><div><strong class="unit-progress-state">○ 尚未完成</strong><time class="unit-progress-date"></time></div></div>'
                 f'<div class="unit-source" data-source-sha256="{unit["sha256"]}">{unit["html"]}</div>'
+                f'<div class="unit-progress unit-completion-actions"><button class="complete-button" data-id="{unit["id"]}" type="button">✓ 完成今日學習</button><button class="cancel-button secondary-button" data-id="{unit["id"]}" type="button" hidden>取消完成</button></div>'
                 '</article>'
             )
         content_groups.append(
